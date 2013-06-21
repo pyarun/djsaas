@@ -21,7 +21,8 @@ class Migration(SchemaMigration):
             ('is_staff', self.gf('django.db.models.fields.BooleanField')(default=False)),
             ('is_active', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('date_joined', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('avatar', self.gf('django.db.models.fields.files.ImageField')(max_length=100)),
+            ('avatar', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
+            ('role', self.gf('django.db.models.fields.CharField')(max_length=15)),
         ))
         db.send_create_signal(u'saas', ['User'])
 
@@ -53,12 +54,22 @@ class Migration(SchemaMigration):
         # Adding model 'Tenant'
         db.create_table(u'saas_tenant', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
-            ('logo', self.gf('django.db.models.fields.files.ImageField')(max_length=100)),
-            ('domain_name', self.gf('django.db.models.fields.CharField')(max_length=25)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=50, db_index=True)),
+            ('logo', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
+            ('domain_name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=25, db_index=True)),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('slug', self.gf('django.db.models.fields.SlugField')(default='', max_length=6)),
         ))
         db.send_create_signal(u'saas', ['Tenant'])
+
+        # Adding M2M table for field users on 'Tenant'
+        m2m_table_name = db.shorten_name(u'saas_tenant_users')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('tenant', models.ForeignKey(orm[u'saas.tenant'], null=False)),
+            ('user', models.ForeignKey(orm[u'saas.user'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['tenant_id', 'user_id'])
 
 
     def backwards(self, orm):
@@ -76,6 +87,9 @@ class Migration(SchemaMigration):
 
         # Deleting model 'Tenant'
         db.delete_table(u'saas_tenant')
+
+        # Removing M2M table for field users on 'Tenant'
+        db.delete_table(db.shorten_name(u'saas_tenant_users'))
 
 
     models = {
@@ -102,14 +116,16 @@ class Migration(SchemaMigration):
         u'saas.tenant': {
             'Meta': {'object_name': 'Tenant'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'domain_name': ('django.db.models.fields.CharField', [], {'max_length': '25'}),
+            'domain_name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '25', 'db_index': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'logo': ('django.db.models.fields.files.ImageField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
+            'logo': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'db_index': 'True'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'default': "''", 'max_length': '6'}),
+            'users': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['saas.User']", 'null': 'True', 'blank': 'True'})
         },
         u'saas.user': {
             'Meta': {'object_name': 'User'},
-            'avatar': ('django.db.models.fields.files.ImageField', [], {'max_length': '100'}),
+            'avatar': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
@@ -121,6 +137,7 @@ class Migration(SchemaMigration):
             'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
+            'role': ('django.db.models.fields.CharField', [], {'max_length': '15'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
         },
