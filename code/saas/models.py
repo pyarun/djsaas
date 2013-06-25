@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib import auth
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
@@ -14,7 +14,6 @@ ROLES = (
          ( "tadmin", _("Tenant Admin")),
          ( "user", _("User"))
     )
-
 
 from django.db.models.signals import class_prepared
 @receiver(class_prepared)
@@ -36,10 +35,10 @@ def set_default_username(sender, **kwargs):
 
 
 
-class SaasUserManager(UserManager):
+class SaasUserManager(auth.models.UserManager):
     pass
 
-class User(AbstractUser):
+class User(auth.models.AbstractUser):
     avatar = models.ImageField(upload_to="avatar", blank=True, null=True)
     role = models.CharField(max_length=15, choices=ROLES)
 
@@ -51,17 +50,22 @@ class User(AbstractUser):
         """
         return self.role == "tmanager"
     
-    
+#Classes for Tenant's Account Manager    
 
-class UserProfile(models.Model):
-    user = models.ForeignKey(User)
+class TenantAccountManagers_Manager(SaasUserManager):
     
-    
-class TenantManager(User):
+    def get_query_set(self):
+        queryset = SaasUserManager.get_query_set(self)
+        return queryset.filter(role="tmanager") 
+
+
+class TenantAccountManager(User):
+    objects = TenantAccountManagers_Manager()
     class Meta:
         proxy=True    
 
-    
+#Classes for Tenant Records
+
 class TenantModelManager(models.Manager):
     
     def create_tenant_manager(self, sender, **kwargs):

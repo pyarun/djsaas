@@ -14,7 +14,7 @@ class Migration(SchemaMigration):
             ('password', self.gf('django.db.models.fields.CharField')(max_length=128)),
             ('last_login', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
             ('is_superuser', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('username', self.gf('django.db.models.fields.CharField')(unique=True, max_length=30)),
+            ('username', self.gf('django.db.models.fields.CharField')(default='uocbds', unique=True, max_length=30)),
             ('first_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
             ('last_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
             ('email', self.gf('django.db.models.fields.EmailField')(max_length=75, blank=True)),
@@ -44,13 +44,6 @@ class Migration(SchemaMigration):
         ))
         db.create_unique(m2m_table_name, ['user_id', 'permission_id'])
 
-        # Adding model 'UserProfile'
-        db.create_table(u'saas_userprofile', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['saas.User'])),
-        ))
-        db.send_create_signal(u'saas', ['UserProfile'])
-
         # Adding model 'Tenant'
         db.create_table(u'saas_tenant', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
@@ -58,7 +51,7 @@ class Migration(SchemaMigration):
             ('logo', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
             ('domain_name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=25, db_index=True)),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('slug', self.gf('django.db.models.fields.SlugField')(default='', max_length=6)),
+            ('slug', self.gf('django.db.models.fields.SlugField')(default='QyzEYC', unique=True, max_length=6)),
         ))
         db.send_create_signal(u'saas', ['Tenant'])
 
@@ -81,9 +74,6 @@ class Migration(SchemaMigration):
 
         # Removing M2M table for field user_permissions on 'User'
         db.delete_table(db.shorten_name(u'saas_user_user_permissions'))
-
-        # Deleting model 'UserProfile'
-        db.delete_table(u'saas_userprofile')
 
         # Deleting model 'Tenant'
         db.delete_table(u'saas_tenant')
@@ -120,7 +110,7 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'logo': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'db_index': 'True'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'default': "''", 'max_length': '6'}),
+            'slug': ('django.db.models.fields.SlugField', [], {'default': "'kCWZiA'", 'unique': 'True', 'max_length': '6'}),
             'users': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': u"orm['saas.User']", 'null': 'True', 'blank': 'True'})
         },
         u'saas.user': {
@@ -139,12 +129,7 @@ class Migration(SchemaMigration):
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'role': ('django.db.models.fields.CharField', [], {'max_length': '15'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        u'saas.userprofile': {
-            'Meta': {'object_name': 'UserProfile'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['saas.User']"})
+            'username': ('django.db.models.fields.CharField', [], {'default': "'b18o56'", 'unique': 'True', 'max_length': '30'})
         }
     }
 
