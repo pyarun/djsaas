@@ -4,12 +4,9 @@ from django.shortcuts import render
 from django.contrib.sites.models import RequestSite
 
 
-def client_login(request):
+def user_home(request):
     """
-        Renders the login page for tenant Users
+        Renders Users home page. Content will be based on the permissions users have on the tenant data
     """
-    print request.tenant
     context = dict()
-    req= RequestSite(request)
-    
-    return render(request, "client_login.html", context)
+    return render(request, 'user_home.html', context)

@@ -17,7 +17,8 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     
     #accounts
-    url("", include("accounts.urls"))
+    url("", include("accounts.urls")),
+    url("", include("saas.urls"))
     
 ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

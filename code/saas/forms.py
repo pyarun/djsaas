@@ -62,3 +62,14 @@ class UserCreationForm(forms.ModelForm):
             user.save()
         return user
 
+
+class SaasAuthenticationForm(auth.forms.AuthenticationForm):
+    
+
+    def clean(self):
+        cleaned_data = auth.forms.AuthenticationForm.clean(self)
+        
+        if not getattr(self.request, "tenant")  or not self.get_user() in self.request.tenant.users.all():
+            raise forms.ValidationError(self.error_messages['invalid_login'] % {'username': self.username_field.verbose_name})
+            
+        return cleaned_data
