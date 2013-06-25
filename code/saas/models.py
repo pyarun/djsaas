@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib import auth
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
@@ -36,10 +36,10 @@ def set_default_username(sender, **kwargs):
 
 
 
-class SaasUserManager(UserManager):
+class SaasUserManager(auth.models.UserManager):
     pass
 
-class User(AbstractUser):
+class User(auth.models.AbstractUser):
     avatar = models.ImageField(upload_to="avatar", blank=True, null=True)
     role = models.CharField(max_length=15, choices=ROLES)
 
@@ -58,6 +58,9 @@ class UserProfile(models.Model):
     
     
 class TenantManager(User):
+    """
+        Subset of Users, Who are acting as Account Managers for Tenant's
+    """
     class Meta:
         proxy=True    
 

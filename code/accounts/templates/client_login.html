@@ -1,0 +1,8 @@
+Login Page for Tenants
+
+You are at {{tenant.name}}
+{{form.errors}}
+<form action="{% url "dlogin" %}" method="post">{% csrf_token %}
+{{form.as_p}}
+<input type="submit" name="Login" value="Login"/>
+</form>
