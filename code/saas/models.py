@@ -64,18 +64,11 @@ class SaasUserManager(auth.models.BaseUserManager):
         u.save(using=self._db)
         return u
 
-<<<<<<< HEAD
 
 class User(auth.models.AbstractBaseUser, auth.models.PermissionsMixin):
     first_name = models.CharField(_('first name'), max_length=30, blank=True)
     last_name = models.CharField(_('last name'), max_length=30, blank=True)
     email = models.EmailField(_('email address'), blank=True, unique=True)
-=======
-class SaasUserManager(auth.models.UserManager):
-    pass
-
-class User(auth.models.AbstractUser):
->>>>>>> master
     avatar = models.ImageField(upload_to="avatar", blank=True, null=True)
     role = models.CharField(max_length=15, choices=ROLES)
 
@@ -122,7 +115,6 @@ class User(auth.models.AbstractUser):
         """
         return self.role == "tmanager"
     
-<<<<<<< HEAD
 #Classes for Tenant's Account Manager    
  
 class TenantAccountManagers_Manager(SaasUserManager):
@@ -134,18 +126,7 @@ class TenantAccountManagers_Manager(SaasUserManager):
  
 class TenantAccountManager(User):
     objects = TenantAccountManagers_Manager()
-=======
-    
 
-class UserProfile(models.Model):
-    user = models.ForeignKey(User)
-    
-    
-class TenantManager(User):
-    """
-        Subset of Users, Who are acting as Account Managers for Tenant's
-    """
->>>>>>> master
     class Meta:
         proxy=True    
  
