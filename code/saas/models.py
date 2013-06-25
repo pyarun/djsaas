@@ -6,6 +6,8 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 import string, random
+from django.utils import timezone
+from django.core.mail import send_mail
 
 ROLES = (
          ( "dev-admin", _("Developer Admin")),
@@ -15,34 +17,97 @@ ROLES = (
          ( "user", _("User"))
     )
 
-from django.db.models.signals import class_prepared
-@receiver(class_prepared)
-def set_default_username(sender, **kwargs):
-    """
-        This function is a reciever of class_prepared signal.
-        It is used to set the default value for username, in User Table.
-        Username is a unique and dynamically generated key. Whenever a new user instance is created,
-        a unique username is set by default.
-    """
-    def generate_new_username():
-        while True:
-            sample = "".join(random.sample(string.letters.lower() + string.digits, 6))
-            if not User.objects.filter(username = sample).exists():break
-        return sample
+# from django.db.models.signals import class_prepared
+# @receiver(class_prepared)
+# def set_default_username(sender, **kwargs):
+#     """
+#         This function is a reciever of class_prepared signal.
+#         It is used to set the default value for username, in User Table.
+#         Username is a unique and dynamically generated key. Whenever a new user instance is created,
+#         a unique username is set by default.
+#     """
+#     def generate_new_username():
+#         while True:
+#             sample = "".join(random.sample(string.letters.lower() + string.digits, 6))
+#             if not User.objects.filter(username = sample).exists():break
+#         return sample
+#     
+#     if sender.__name__ == "User" and sender.__module__== __name__:
+#         sender._meta.get_field("username").default = generate_new_username
+
+
+
+class SaasUserManager(auth.models.BaseUserManager):
     
-    if sender.__name__ == "User" and sender.__module__== __name__:
-        sender._meta.get_field("username").default = generate_new_username
+    def create_user(self, email, role, password=None, **extra_fields):
+        """
+        Creates and saves a User with the given username, email and password.
+        """
+        now = timezone.now()
+        if not email:
+            raise ValueError('The given email must be set')
+        email = SaasUserManager.normalize_email(email)
+        user = self.model(email=email, role=role,
+                          is_staff=False, is_active=True, is_superuser=False,
+                          last_login=now, date_joined=now, **extra_fields)
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        role = extra_fields.pop("role", 'user') if extra_fields.has_key("role") else "user"
+        u = self.create_user( email, role, password, **extra_fields)
+        u.is_staff = True
+        u.is_active = True
+        u.is_superuser = True
+        u.save(using=self._db)
+        return u
 
 
-
-class SaasUserManager(auth.models.UserManager):
-    pass
-
-class User(auth.models.AbstractUser):
+class User(auth.models.AbstractBaseUser, auth.models.PermissionsMixin):
+    first_name = models.CharField(_('first name'), max_length=30, blank=True)
+    last_name = models.CharField(_('last name'), max_length=30, blank=True)
+    email = models.EmailField(_('email address'), blank=True, unique=True)
     avatar = models.ImageField(upload_to="avatar", blank=True, null=True)
     role = models.CharField(max_length=15, choices=ROLES)
 
+    is_staff = models.BooleanField(_('staff status'), default=False,
+        help_text=_('Designates whether the user can log into this admin '
+                    'site.'))
+    is_active = models.BooleanField(_('active'), default=True,
+        help_text=_('Designates whether this user should be treated as '
+                    'active. Unselect this instead of deleting accounts.'))
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+
     objects = SaasUserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = [ 'role']
+
+    class Meta:
+        verbose_name = _('user')
+        verbose_name_plural = _('users')
+    
+    objects = SaasUserManager()
+    
+    def get_full_name(self):
+        """
+        Returns the first_name plus the last_name, with a space in between.
+        """
+        full_name = '%s %s' % (self.first_name, self.last_name)
+        return full_name.strip()
+
+    def get_short_name(self):
+        "Returns the short name for the user."
+        return self.first_name
+
+    def email_user(self, subject, message, from_email=None):
+        """
+        Sends an email to this User.
+        """
+        send_mail(subject, message, from_email, [self.email])
+
     
     def is_tmanager(self):
         """
@@ -51,19 +116,19 @@ class User(auth.models.AbstractUser):
         return self.role == "tmanager"
     
 #Classes for Tenant's Account Manager    
-
+ 
 class TenantAccountManagers_Manager(SaasUserManager):
-    
+     
     def get_query_set(self):
         queryset = SaasUserManager.get_query_set(self)
         return queryset.filter(role="tmanager") 
-
-
+ 
+ 
 class TenantAccountManager(User):
     objects = TenantAccountManagers_Manager()
     class Meta:
         proxy=True    
-
+ 
 #Classes for Tenant Records
 
 class TenantModelManager(models.Manager):

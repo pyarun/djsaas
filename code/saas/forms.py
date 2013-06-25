@@ -7,13 +7,28 @@ from django.contrib import auth
 from saas.models import User
 from django import forms
 from django.utils.translation import ugettext, ugettext_lazy as _
-class UserChangeForm(auth.forms.UserChangeForm):
-    username = forms.CharField(required=False)
+
+class UserChangeForm(forms.ModelForm):
     class Meta:
         model = User
-        exclude = ('username',)
         
-from django import forms
+    password = auth.forms.ReadOnlyPasswordHashField(label=_("Password"),
+    help_text=_("Raw passwords are not stored, so there is no way to see "
+                "this user's password, but you can change the password "
+                "using <a href=\"password/\">this form</a>."))
+
+    def __init__(self, *args, **kwargs):
+        super(UserChangeForm, self).__init__(*args, **kwargs)
+        f = self.fields.get('user_permissions', None)
+        if f is not None:
+            f.queryset = f.queryset.select_related('content_type')
+
+    def clean_password(self):
+        # Regardless of what the user provides, return the initial value.
+        # This is done here, rather than on the field, because the
+        # field does not have access to the initial value
+        return self.initial["password"]    
+    
 class UserCreationForm(forms.ModelForm):
 #     username = forms.CharField(required=False, widget=forms.HiddenInput)
     error_messages = {
@@ -29,7 +44,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'role')
+        fields = ('email', 'role')
 
 
     def clean_password2(self):

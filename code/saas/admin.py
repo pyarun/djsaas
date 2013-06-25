@@ -4,6 +4,7 @@ Created on 19-Jun-2013
 @author: arun
 '''
 from django.contrib import admin, auth
+from django.utils.translation import ugettext, ugettext_lazy as _
 from django import forms
 from django.db import models
 from saas.models import User, Tenant, TenantAccountManager
@@ -11,13 +12,37 @@ from django.contrib.admin.options import TabularInline
 from saas import forms as saas_forms
  
 class SaasUserAdmin(auth.admin.UserAdmin):
-    readonly_fields = ('last_login', 'username')
+    readonly_fields = ('last_login',)
     
     form = saas_forms.UserChangeForm
     add_form = saas_forms.UserCreationForm
 
-    fieldsets = auth.admin.UserAdmin.fieldsets + (("abc", {'fields': ('role', 'avatar')}),)
-    add_fieldsets = ((None, {'fields':('email', 'role', 'password1', 'password2')}),)
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        (_('Personal info'), {'fields': (('first_name', 'last_name'), 'avatar')}),
+        (_('Permissions'), {'fields': ('role', 'is_active', 'is_staff', 'is_superuser',
+                                       'groups', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'role', 'password1', 'password2')}
+        ),
+    )
+#     form = UserChangeForm
+#     add_form = UserCreationForm
+#     change_password_form = AdminPasswordChangeForm
+    list_display = ('email', 'first_name', 'last_name','role', 'is_staff')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'groups')
+    search_fields = ('first_name', 'last_name', 'email')
+    ordering = ('email', 'role')
+    filter_horizontal = ('groups', 'user_permissions',)
+
+
+
+#     fieldsets = auth.admin.UserAdmin.fieldsets + (("abc", {'fields': ('role', 'avatar')}),)
+#     add_fieldsets = ((None, {'fields':('email', 'role', 'password1', 'password2')}),)
 
  
 admin.site.register( User, SaasUserAdmin)
