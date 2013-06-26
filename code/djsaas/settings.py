@@ -136,7 +136,9 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     "saas",
     "south",
-    "accounts"
+    "accounts",
+    "registration",
+    'dbmail'
 )
 
 # A sample logging configuration. The only tangible logging
@@ -179,3 +181,5 @@ TEMPLATE_CONTEXT_PROCESSORS = ('django.contrib.auth.context_processors.auth',
  'django.contrib.messages.context_processors.messages',
  'django.core.context_processors.request',
 )
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

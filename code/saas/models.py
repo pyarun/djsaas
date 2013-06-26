@@ -182,15 +182,12 @@ class Tenant(models.Model):
         When a Tenant is created, a Tenant owner account should also be created
     """
 
-    name = models.CharField(max_length=50, help_text="Company's Display Name", db_index=True)
-    logo = models.ImageField( upload_to=logo_storage, blank=True, null=True)
-    domain_name = models.CharField(max_length=25,unique=True, help_text="Domain Name to be set", db_index=True)
-    
-    active = models.BooleanField(default=False)
-    
-    users =  models.ManyToManyField(User, blank=True, null=True)
-    
-    slug = models.SlugField(max_length=6, default=generate_unique_slug, db_index=True, unique=True )
+    name =          models.CharField( max_length=50, help_text="Company's Display Name", db_index=True)
+    logo =          models.ImageField( upload_to=logo_storage, blank=True, null=True)
+    domain_name =   models.CharField( max_length=25, unique=True, help_text="Domain Name to be set", db_index=True)
+    active =        models.BooleanField( default=False)
+    users =         models.ManyToManyField( User, blank=True, null=True)
+    slug =          models.SlugField( max_length=6, default=generate_unique_slug, db_index=True, unique=True )
     
     objects = TenantModelManager()
     

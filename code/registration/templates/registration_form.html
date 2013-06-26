@@ -1,0 +1,10 @@
+
+
+
+Djsaas Registration 
+
+<form method='post' action='{% url "tenant_registration_form" %}'>{% csrf_token %}
+{{form.as_p}}
+
+<input type='submit' name='register' value='Register'/>
+</form>
